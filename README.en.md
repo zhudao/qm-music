@@ -4,8 +4,16 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/qmmusic/qm-music)](https://hub.docker.com/r/qmmusic/qm-music)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**QM-Music** is a private cloud music server based on Subsonic, designed as a lightweight high-performance solution for music enthusiasts. Supports one-click Docker deployment and provides full compatibility with Subsonic ecosystem clients (e.g. StreamMusic/Amperfy/substreamer/feishin/music-assistant), enabling secure access to your personal music library anytime, anywhere.
+**QM-Music** is a private cloud music server based on Subsonic, designed as a lightweight high-performance solution for music enthusiasts. Supports one-click Docker deployment and provides full compatibility with Subsonic ecosystem clients (e.g. StreamMusic/feishin/airsonic/Amperfy/substreamer/music-assistant), enabling secure access to your personal music library anytime, anywhere.
 
+<details open>
+<summary>🖥️ <a href="https://github.com/jeffvli/feishin">feishin</a></summary>
+<div style="display: flex; flex-direction: column; gap: 10px;">
+  <img src="docs/assets/feishin/en/index.jpg" width="100%" />
+  <img src="docs/assets/feishin/en/song.png" width="100%" />
+  <img src="docs/assets/feishin/en/song_relation_2.png" width="100%" />
+</div>
+</details>
 
 ## 🌟 Core Features
 
@@ -29,7 +37,7 @@ docker run -d \
   -v [host_path_db_path]:/data/qm-music/db \
   -v [host_path_cache_path]:/data/qm-music/cache \
   -e QM_FFMPEG_ENABLE=true \
-  -e TZ=Asia/Shanghai \
+  -e TZ=America/Chicago \
   -e QM_SPOTIFY_ENABLE=false \
   -e QM_SPOTIFY_CLIENT_ID=[QM_SPOTIFY_CLIENT_ID] \
   -e QM_SPOTIFY_CLIENT_SECRET=[QM_SPOTIFY_CLIENT_SECRET] \
@@ -55,7 +63,7 @@ services:
       - [host_path_cache_path]:/data/qm-music/cache 
     environment:
       - QM_FFMPEG_ENABLE=true
-      - TZ=Asia/Shanghai
+      - TZ=America/Chicago
       - QM_SPOTIFY_ENABLE=false
       - QM_SPOTIFY_CLIENT_ID=[QM_SPOTIFY_CLIENT_ID]
       - QM_SPOTIFY_CLIENT_SECRET=[QM_SPOTIFY_CLIENT_SECRET]
@@ -68,7 +76,7 @@ services:
 ### ⚙️ Configuration Instructions
 - **Environment Variables**
     - `QM_FFMPEG_ENABLE=true` Enable smart audio transcoding (recommended for outdoor use). Automatically switches between libmp3lame/acc encodings based on network conditions to reduce data usage (disabled by default).
-    - `TZ=Asia/Shanghai` Configure according to your timezone.
+    - `TZ=America/Chicago` Configure according to your timezone.
     - `QM_SPOTIFY_ENABLE=false` Enable for enhanced metadata support [SPOTIFY KEY Application](https://developer.spotify.com/documentation/web-api)
     - `QM_SPOTIFY_CLIENT_ID` Not required
     - `QM_SPOTIFY_CLIENT_SECRET` Not required

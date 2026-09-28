@@ -1,13 +1,12 @@
 package com.github.chenqimiao.qmmusic.core.service.complex.impl;
 
 import com.github.chenqimiao.qmmusic.core.constant.ModelMapperTypeConstants;
-import com.github.chenqimiao.qmmusic.core.dto.AlbumDTO;
-import com.github.chenqimiao.qmmusic.core.dto.PlayHistoryDTO;
-import com.github.chenqimiao.qmmusic.core.dto.SongDTO;
-import com.github.chenqimiao.qmmusic.core.dto.UserStarDTO;
+import com.github.chenqimiao.qmmusic.core.constant.UnknownConstant;
+import com.github.chenqimiao.qmmusic.core.dto.*;
 import com.github.chenqimiao.qmmusic.core.enums.EnumArtistRelationType;
 import com.github.chenqimiao.qmmusic.core.enums.EnumUserStarType;
 import com.github.chenqimiao.qmmusic.core.request.AlbumSearchRequest;
+import com.github.chenqimiao.qmmusic.core.request.BatchStarInfoRequest;
 import com.github.chenqimiao.qmmusic.core.service.AlbumService;
 import com.github.chenqimiao.qmmusic.core.service.PlayHistoryService;
 import com.github.chenqimiao.qmmusic.core.service.SongService;
@@ -25,9 +24,11 @@ import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,6 +66,12 @@ public class SubsonicAlbumComplexServiceImpl implements AlbumComplexService {
     private ArtistRelationRepository artistRelationRepository;
     @Autowired
     private UserStarService userStarService;
+    @Autowired
+    private ModelMapper modelMapper;
+
+
+    private static final Type TYPE_LIST_COMPLEX_ALBUM = new TypeToken<List<ComplexAlbumDTO>>() {}.getType();
+
 
 
     @Override
@@ -91,6 +98,7 @@ public class SubsonicAlbumComplexServiceImpl implements AlbumComplexService {
         // 1 clean star
         userStarRepository.delByRelationIdsAndStartType(toBeCleanAlbumIds, EnumUserStarType.ALBUM.getCode());
         // 2 clean album
+        toBeCleanAlbumIds = toBeCleanAlbumIds.stream().filter(n -> !Objects.equals(n, UnknownConstant.UN_KNOWN_ALBUM_ID)).toList();
         albumRepository.delByIds(toBeCleanAlbumIds);
     }
 
@@ -169,6 +177,36 @@ public class SubsonicAlbumComplexServiceImpl implements AlbumComplexService {
                 artistRelationRepository.findByArtistIdAndType(artistId, EnumArtistRelationType.ALBUM.getCode());
         List<Long> albumIds = artistRelationList.stream().map(ArtistRelationDO::getRelation_id).toList();
         return albumService.batchQueryAlbumByAlbumIds(albumIds);
+    }
+
+    @Override
+    public List<ComplexAlbumDTO> getComplexAlbumList2(AlbumSearchRequest albumSearchRequest) {
+        List<AlbumDTO> albumList = this.getAlbumList2(albumSearchRequest);
+        if (CollectionUtils.isEmpty(albumList)) {
+            return Collections.emptyList();
+        }
+        return this.wrapComplexAlbumList(albumList, albumSearchRequest.getUserId());
+    }
+
+    private List<ComplexAlbumDTO> wrapComplexAlbumList(List<AlbumDTO> albumList, Long userId) {
+        if (CollectionUtils.isEmpty(albumList)) {
+            return Collections.emptyList();
+        }
+        List<Long> albumIds = albumList.stream().map(AlbumDTO::getId).toList();
+        List<ComplexAlbumDTO> complexAlbums = modelMapper.map(albumList, TYPE_LIST_COMPLEX_ALBUM);
+        if (userId != null) {
+            BatchStarInfoRequest request = BatchStarInfoRequest.builder().userId(userId)
+                    .startType(EnumUserStarType.ALBUM)
+                    .relationIds(albumIds)
+                    .build();
+            Map<Long, Long> starMap = userStarService.batchQueryStarredTime(request);
+            complexAlbums.forEach(complexAlbum -> {
+                Long starredTime = starMap.get(complexAlbum.getId());
+                complexAlbum.setStarred(starredTime);
+                complexAlbum.setIsStar(Objects.nonNull(starredTime));
+            });
+        }
+        return complexAlbums;
     }
 
     private List<AlbumDTO> getFrequentAlbumList2(AlbumSearchRequest albumSearchRequest) {

@@ -1,6 +1,7 @@
 package com.github.chenqimiao.qmmusic.core.service.complex.impl;
 
 import com.github.chenqimiao.qmmusic.core.constant.CommonConstants;
+import com.github.chenqimiao.qmmusic.core.constant.UnknownConstant;
 import com.github.chenqimiao.qmmusic.core.enums.EnumArtistRelationType;
 import com.github.chenqimiao.qmmusic.core.io.local.AudioContentTypeDetector;
 import com.github.chenqimiao.qmmusic.core.io.local.MusicFileReader;
@@ -123,6 +124,8 @@ public class SubsonicMediaFetcherServiceImpl implements MediaFetcherService {
         Path root = Paths.get(rootPath); // 根目录
 
         try (var stream = Files.walk(root)) {
+            final AlbumDO unknownAlbum = albumRepository.findByAlbumId(UnknownConstant.UN_KNOWN_ALBUM_ID);
+            final ArtistDO unknownArtist = artistRepository.findByArtistId(UnknownConstant.UN_KNOWN_ARTIST_ID);
             stream.parallel(). // 启用并行流加速
                 filter(Files::isRegularFile) // 只保留普通文件
                     .filter(FileUtils::isVideo) //仅扫描video
@@ -136,7 +139,7 @@ public class SubsonicMediaFetcherServiceImpl implements MediaFetcherService {
                             if (musicMeta == null) {
                                 return;
                             }
-                            this.save(musicMeta, path);
+                            this.save(musicMeta, path, unknownArtist, unknownAlbum);
                             songCount.incrementAndGet();
                         }catch (Exception e) {
                             log.error("traverse file exception: {} ", path, e);
@@ -173,52 +176,68 @@ public class SubsonicMediaFetcherServiceImpl implements MediaFetcherService {
     }
 
     @SneakyThrows
-    private void save(MusicMeta musicMeta, Path path) {
+    private void save(MusicMeta musicMeta, Path path, final ArtistDO unknownArtist, final AlbumDO unknownAlbum) {
         String delimiterRegx = CommonConstants.ARTIST_NAME_DELIMITER_REGX;
         MusicAlbumMeta musicAlbumMeta = musicMeta.getMusicAlbumMeta();
 
-        List<ArtistDO> songArtists = new ArrayList<>();
-        List<ArtistDO> albumArtists = new ArrayList<>();
+        final List<ArtistDO> songArtists = new ArrayList<>();
+        final List<ArtistDO> albumArtists = new ArrayList<>();
         if (StringUtils.isNotBlank(musicMeta.getArtist())) {
-            songArtists = Arrays.stream(musicMeta.getArtist().split(delimiterRegx))
-                    .map(String::trim).distinct()
+            List<ArtistDO> toBeSavedSongArtists = Arrays.stream(musicMeta.getArtist().split(delimiterRegx))
+                    .filter(StringUtils::isNotBlank)
+                    .map(String::trim)
+                    .distinct()
                     .map(n -> {
                         ArtistDO artistDO  = new ArtistDO();
                         artistDO.setId(sequence.nextId());
                         artistDO.setName(n);
                         artistDO.setFirst_letter(FirstLetterUtil.getFirstLetter(n));
                         return artistDO;
-                    }).toList();
+                    }).collect(Collectors.toList());
 
-            songArtists = artistRepository.saveAndReturn(songArtists);
+            songArtists.addAll(artistRepository.saveAndReturn(toBeSavedSongArtists));
+        }
+        if (CollectionUtils.isEmpty(songArtists)) {
+            songArtists.add(unknownArtist);
         }
 
         if (StringUtils.isNotBlank(musicAlbumMeta.getAlbumArtist())) {
-            albumArtists = Arrays.stream(musicAlbumMeta.getAlbumArtist().split(delimiterRegx))
-                    .map(String::trim).distinct()
+            List<ArtistDO> toBeSavedAlbumArtists = Arrays.stream(musicAlbumMeta.getAlbumArtist().split(delimiterRegx))
+                    .filter(StringUtils::isNotBlank)
+                    .map(String::trim)
+                    .distinct()
                     .map(n -> {
                         ArtistDO artistDO  = new ArtistDO();
                         artistDO.setId(sequence.nextId());
                         artistDO.setName(n);
                         artistDO.setFirst_letter(FirstLetterUtil.getFirstLetter(n));
                         return artistDO;
-                    }).toList();
+                    }).collect(Collectors.toList());
 
-            albumArtists = artistRepository.saveAndReturn(albumArtists);
+            albumArtists.addAll(artistRepository.saveAndReturn(toBeSavedAlbumArtists));
 
+        }
+
+        if (CollectionUtils.isEmpty(albumArtists) && CollectionUtils.isNotEmpty(songArtists)) {
+            albumArtists.add(songArtists.getFirst());
+        }
+
+
+        if (CollectionUtils.isEmpty(albumArtists)) {
+            albumArtists.add(unknownArtist);
         }
 
 
         AlbumDO albumDO = null;
         if (StringUtils.isNotBlank(musicAlbumMeta.getAlbum())) {
-             albumDO = albumRepository.queryByUniqueKey(musicAlbumMeta.getAlbum());
+            ArtistDO albumArtist = albumArtists.getFirst();
+            albumDO = albumRepository.queryByUniqueKey(musicAlbumMeta.getAlbum(), albumArtist.getId());
 
             if (albumDO == null) {
                 albumDO = new AlbumDO();
                 albumDO.setId(sequence.nextId());
                 albumDO.setTitle(musicAlbumMeta.getAlbum());
-                ArtistDO albumArtist = CollectionUtils.isNotEmpty(albumArtists)? albumArtists.getFirst(): null;
-                albumDO.setArtist_id(Optional.ofNullable(albumArtist).map(ArtistDO::getId).orElse(null));
+                albumDO.setArtist_id(albumArtist.getId());
                 String releaseYear = StringUtils.isNotBlank(musicAlbumMeta.getYear()) ? musicAlbumMeta.getYear()
                         : musicAlbumMeta.getOriginalYear();
                 albumDO.setRelease_year(MusicFileReader.beautifyReleaseYear(releaseYear));
@@ -226,8 +245,8 @@ public class SubsonicMediaFetcherServiceImpl implements MediaFetcherService {
                 String trackTotal = musicAlbumMeta.getTrackTotal();
                 albumDO.setSong_count(NumberUtils.toInt(trackTotal, NumberUtils.INTEGER_ZERO));
                 albumDO.setDuration(2025); // QM birth year
-                albumDO.setArtist_name(Optional.ofNullable(albumArtist).map(ArtistDO::getName).orElse(null));
-                albumDO.setFirst_letter_artist_name(Optional.ofNullable(albumArtist).map(ArtistDO::getFirst_letter).orElse(CommonConstants.UN_KNOWN_FIRST_LETTER));
+                albumDO.setArtist_name(albumArtist.getName());
+                albumDO.setFirst_letter_artist_name(Optional.ofNullable(albumArtist.getFirst_letter()).orElse(CommonConstants.UN_KNOWN_FIRST_LETTER));
                 albumDO.setFirst_letter_title(FirstLetterUtil.getFirstLetter(musicAlbumMeta.getAlbum()));
                 albumDO = albumRepository.saveAndReturn(albumDO);
             }
@@ -239,8 +258,8 @@ public class SubsonicMediaFetcherServiceImpl implements MediaFetcherService {
         songDO.setId(songId);
         songDO.setParent(NumberUtils.LONG_ONE);
         songDO.setTitle(musicMeta.getTitle());
-        songDO.setAlbum_id(Optional.ofNullable(albumDO).map(AlbumDO::getId).orElse(null));
-        songDO.setAlbum_title(Optional.ofNullable(albumDO).map(AlbumDO::getTitle).orElse(null));
+        songDO.setAlbum_id(Optional.ofNullable(albumDO).map(AlbumDO::getId).orElse(unknownAlbum.getId()));
+        songDO.setAlbum_title(Optional.ofNullable(albumDO).map(AlbumDO::getTitle).orElse(unknownAlbum.getTitle()));
         songDO.setArtist_id(CollectionUtils.isNotEmpty(songArtists) ? songArtists.getFirst().getId() : null);
         songDO.setArtist_name(CollectionUtils.isNotEmpty(songArtists) ? songArtists.getFirst().getName() : null);
         songDO.setSuffix(FileUtils.getFileExtension(path));

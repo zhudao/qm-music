@@ -64,5 +64,25 @@ public class AlbumList2Response extends SubsonicResponse {
         private String artistId;
         @JacksonXmlProperty(isAttribute = true)
         private Integer year;
+
+        @JacksonXmlProperty(isAttribute = true)
+        private String genre;
+
+
+        @JacksonXmlProperty(isAttribute = true)
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") // jackson xml or json format
+        @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        private Date starred;
+
+        // mock: 私人乐库喜欢才收藏
+        @JacksonXmlProperty(isAttribute = true)
+        @Builder.Default
+        private Integer userRating = 5;
+
+        @JacksonXmlProperty(isAttribute = true)
+        @Builder.Default
+        // mock: 私人乐库喜欢才收藏
+        private Integer averageRating = 5;
+
     }
 }

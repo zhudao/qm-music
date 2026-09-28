@@ -4,21 +4,33 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/qmmusic/qm-music)](https://hub.docker.com/r/qmmusic/qm-music)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**QM-Music** 是一个基于 Subsonic 构建的轻量级私有云音乐服务器，专为音乐爱好者设计的轻量级高性能解决方案。支持 Docker 一键部署，完美兼容 Subsonic 生态客户端（如音流/Amperfy/substreamer/feishin/music-assistant），让您随时随地安全访问个人音乐库。
-<div style="display: flex; gap: 5px;">
-  <img src="docs/assets/433026310-55019589-116b-4afd-ba90-dc0b7a704520.png" style="width:25%" />
-  <img src="docs/assets/433026335-9ddbb5e3-8bb0-4336-b282-9f0d712a12d7.png" style="width:25%" />
-  <img src="docs/assets/433027765-68ecdc95-df2c-4424-983d-dc44103af125.png" style="width:25%" />
-  <img src="docs/assets/433027782-26769aea-be11-447c-89c1-524827fc6175.png" style="width:25%" />
-  <img src="docs/assets/433026371-93d66adb-8659-4351-ad57-731c16668224.png" style="width:25%" />
-  <img src="docs/assets/433026401-e91adfc7-2721-4b5e-82df-5a967fc6ae87.png" style="width:25%" />
-  <img src="docs/assets/433033515-cc6d37dd-0d06-4dd9-8466-673f5cc2c02c.png" style="width:25%" />
-  <img src="docs/assets/433033525-7a207bdd-26c8-48d2-ace3-227130ef0374.png" style="width:25%" />
-  <img src="docs/assets/433033533-de036d64-b1db-45c4-b545-9c75bc2bc2cc.png" style="width:25%" />
-  <img src="docs/assets/IMG118.jpg" style="width:25%" />
-  <img src="docs/assets/IMG119.jpg" style="width:25%" />
-  <img src="docs/assets/IMG120.jpg" style="width:25%" />
+**QM-Music** 是一个基于 Subsonic 构建的轻量级私有云音乐服务器，专为音乐爱好者设计的轻量级高性能解决方案。支持 Docker 一键部署，完美兼容 Subsonic 生态客户端（如音流/feishin/airsonic/Amperfy/substreamer/music-assistant），让您随时随地安全访问个人音乐库。
+<details open>
+<summary>📱 音流</summary>
+<div style="display: flex; flex-wrap: wrap; gap: 5px;">
+  <img src="docs/assets/stream/433026310-55019589-116b-4afd-ba90-dc0b7a704520.png" width="24%" />
+  <img src="docs/assets/stream/433026335-9ddbb5e3-8bb0-4336-b282-9f0d712a12d7.png" width="24%" />
+  <img src="docs/assets/stream/433027765-68ecdc95-df2c-4424-983d-dc44103af125.png" width="24%" />
+  <img src="docs/assets/stream/433027782-26769aea-be11-447c-89c1-524827fc6175.png" width="24%" />
+  <img src="docs/assets/stream/433026371-93d66adb-8659-4351-ad57-731c16668224.png" width="24%" />
+  <img src="docs/assets/stream/433026401-e91adfc7-2721-4b5e-82df-5a967fc6ae87.png" width="24%" />
+  <img src="docs/assets/stream/433033515-cc6d37dd-0d06-4dd9-8466-673f5cc2c02c.png" width="24%" />
+  <img src="docs/assets/stream/433033525-7a207bdd-26c8-48d2-ace3-227130ef0374.png" width="24%" />
+  <img src="docs/assets/stream/433033533-de036d64-b1db-45c4-b545-9c75bc2bc2cc.png" width="24%" />
+  <img src="docs/assets/stream/IMG118.jpg" width="24%" />
+  <img src="docs/assets/stream/IMG119.jpg" width="24%" />
+  <img src="docs/assets/stream/IMG120.jpg" width="24%" />
 </div>
+</details>
+
+<details open>
+<summary>🖥️ <a href="https://github.com/jeffvli/feishin">feishin</a></summary>
+<div style="display: flex; flex-direction: column; gap: 10px;">
+  <img src="docs/assets/feishin/index.jpg" width="100%" />
+  <img src="docs/assets/feishin/song.png" width="100%" />
+  <img src="docs/assets/feishin/song_relation.png" width="100%" />
+</div>
+</details>
 
 
 ## 🌟 核心特性
@@ -189,3 +201,21 @@ services:
     </tr>
   </table>
 </div>
+
+### 💝 赞赏名录
+
+衷心感谢以下朋友的支持，正是你们的鼓励让 QM-Music 不断前行 🙏
+
+| 日期         | 渠道 | 赞赏者       | 金额  |
+|------------|------|-----------|-----|
+| 2026-08-28 | 微信 | Black貓1号  | ¥50 |
+| 2026-05-28 | 微信 | 北海冰云雾     | ¥50 |
+| 2026-04-29 | 微信 | PP        | ¥50 |
+| 2026-04-15 | 微信 | 柯寒        | ¥10 |
+| 2026-01-28 | 微信 | 老麦        | ¥10 |
+| 2026-01-17 | 微信 | 胡一刀       | ¥20 |
+| 2025-12-26 | 微信 | 千空        | ¥10 |
+| 2025-10-01 | 微信 | 概是英雄      | ¥1  |
+| 2025-07-22 | 微信 | vjman     | ¥10 |
+| 2025-04-27 | 微信 | 缘分        | ¥10 |
+> 累计：**¥221** · 共 **10** 位赞赏者
